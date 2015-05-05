@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html>
+<head lang="en">
+    <meta charset="UTF-8">
+
+    <!--Stylesheet files-->
+    <link rel="stylesheet" href="css/main.css">
+    <link rel="stylesheet" href="css/d3.slider.css">
+    <link rel="stylesheet" href="css/d3.play.css">
+    <link rel="stylesheet" href="css/snow.css">
+    <link rel="stylesheet" href="libs/bootstrap/css/bootstrap.min.css">
+
+    <style>
+    .slider {
+        width: 800px;
+    }
+    .wrapper {
+      width: 800px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    .wrapper div {
+      margin: 35px 0;
+    }
+
+    .story {
+      width: 500px;
+      margin-left: auto;
+      margin-right: auto;
+      color: blue;
+    }
+
+    .story div {
+      margin: 35px 0;
+    }
+    </style>
+
+    <!--Title-->
+    <title>The More You Snow!</title>
+
+</head>
+
+<!--Add default d3 refs-->
+<script src="libs/d3/d3.v3.min.js"></script>
+<script src="libs/d3/queue.v1.min.js"></script>
+<script src="libs/d3/topojson.v1.min.js"></script>
+
+<!--Additional libs for functionality-->
+<script src="libs/jquery/jquery-2.1.1.min.js" charset="utf-8"></script>
+<script src="libs/bootstrap/js/bootstrap.min.js" charset="utf-8"></script>
+
+
+<!--Time Slider-->
+<script src="libs/d3/d3.slider.js"></script>
+<script src="libs/d3/d3.play.js"></script>
+
+<!--Javascript files-->
+<!--<script src="js/barvis.js"></script>-->
+<!--<script src="js/dailyvis.js"></script>-->
+<script src="js/barvisNew.js"></script>
+<script src="js/dailyvisNew.js"></script>
+<script src="js/mapvis.js"></script>
+<script src="js/storyvis.js"></script>
+<script type="text/javascript" src="js/chroma.js"></script>
+
+<body>
+<div id="container">
+    <!--TITLE-->
+    <div id="title-container" class="row">
+        <h1 id="title">The More You Snow!</h1>
+    </div>
+
+    <!--TODO: Update slider info-->
+    <!--SLIDER INFO-->
+    <div id="time-container" class="row">
+
+        <div id="date" class="col-sm-2">
+            <p id="month">
+                <span>YEAR </span>' 2005'
+            </p>
+        </div>
+
+        <!--PLAY BUTTON-->
+        <div id="play" title="Play animation" class="col-sm-2"></div>
+        
+        <!--SLIDER-->
+        <!--<div id="slider7" class="col-sm-5" style="background-color: white">-->
+
+        <!--<div id="slider-container" class="col-sm-5" style="background-color: blue">
+            <input type="range" name="points" min="2005" max="2015" step="1" value="0" id="slider-time" >
+        </div>-->
+
+        <div id="story-container" class="story">
+            <p>
+            <object id="story" width=100% height="40" type="text/plain" data="" border="0" style="background-color: white">
+            </object>
+            </p>
+        </div>
+
+    </div>
+
+    <div class="wrapper">
+        <span id="stop"><!--<input type='button' value='STOP'/>--></span>
+        <span id = "slider-button"></span>
+        <div id="slider_b"></div>   
+    </div>
+
+    <!--TODO: Update story info-->
+    <!--TEXT-->
+   
+
+    <!--VISUALIZATION (Managed with BOOTSTRAP)-->
+    <div id="visualization-container" class="row">
+        <!--LEGEND-->
+        <!--TODO: Update legend info-->
+        <div id="legend-container" class="col-sm-1">
+        </div>
+
+        <!--MAP-->
+        <div id="map-container" class="col-sm-8">
+        </div>
+
+        <div id="views-container" class="col-sm-3">
+            <!--MONTHLY BARS-->
+            <div class="row">
+                <div id="bar-container">
+                    <svg width = "300" height = "350"></svg>
+
+                </div>
+            </div>
+            <!--DAILY LINES-->
+            <div class="row">
+            <div id = "toggle">
+                <label>Snowfall
+                    <input type="radio" class="scale" name="scale" value="fall" checked="checked" onclick="toggle()">
+                </label>
+                <label>Snow Depth
+                    <input type="radio" class="scale" name="scale" value="depth" id = "depth" onclick="toggle()">
+                </label>
+            </div>
+                <div id="line-container">
+                    <svg width = "300" height = "350"></svg>
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <!--FOOTER-->
+    <div id="footer-container">
+        Customize Footer to Mention Authors and Acknowledgements...
+    </div>
+</div>
+
+<div id="snow-background">
+</div>
+
+<!-- MAIN APP -->
+<script>
+    var daily_vis;
+
+    $(function() {
+
+        var us_data = [];           // Draw Map boundaries/paths
+        var snow_data = {};         // Monthly snowfall
+        var daily_fall = {};        // daily snow fall
+        var daily_depth = {};       // daily snow depth
+        var p = false;
+
+        var fipsToCountyMap = d3.map();
+        var countyToFipsMap = d3.map();
+
+        //Preselect what is seen on start :)
+        var current_year = 2005;
+        var startFips = [25025];
+
+        //Visualizations
+        var map_vis;
+        var bar_vis;
+    
+
+        DEBUG = true;           // Global debug variable
+
+        //Call initVis function after Data is loaded, reformatted and bound to the variables
+        var initVis = function () {
+
+            var MyEventHandler = new Object();  //Keep track of events
+
+            // Viz containers
+            map_vis = new MapVis(d3.select("#map-container"), fipsToCountyMap, us_data, snow_data, current_year, startFips, MyEventHandler);
+            bar_vis = new BarVis(d3.select("#bar-container"), snow_data, current_year, startFips, MyEventHandler);
+            daily_vis = new DailyVis(d3.select("#line-container"), daily_fall, daily_depth, current_year, MyEventHandler);
+
+            // Trigger Bindings
+            $(MyEventHandler).bind("selectionChanged", function (event, fipObj) {
+                //arrays are by default expected to be extra parameters for an event trigger
+                //Need to pass it in as a single element to keep track of all fips
+                //Originally registered it as a list of parameters (not values)...
+                bar_vis.onSelectionChange(fipObj.values, current_year);
+                daily_vis.onSelectionChange(fipObj.values,current_year);
+
+                //update the display with the name of the county selected
+                var sourceCountyName = undefined;
+                if (fipObj.values[0]){
+                    sourceCountyName = fipsToCountyMap.get(fipObj.values[0]);
+                    var splitted = sourceCountyName.split(',');
+                    sourceCountyName = splitted[1] + ", " + splitted[0];
+                }
+                var fipsNotLocated = (sourceCountyName == undefined)
+
+                document.getElementById("county-name").innerHTML = ((fipsNotLocated) ? "None" : sourceCountyName)
+            });
+            // That's why this works (d is a single element preceding event object )
+            $(MyEventHandler).bind("barClicked", function (event, d) {
+                daily_vis.onBarClicked(d.values.fips, d.key, current_year);
+            });
+        }
+
+
+        if (DEBUG) console.log("loading files");
+
+        queue()
+                .defer(d3.json, "json/us.json")
+                .defer(d3.json, "json/FipsCountyCodes.json")
+                .defer(d3.csv, "data/snflMonthly.csv")
+                .defer(d3.tsv, "data/snfl_clean.tsv")
+                .defer(d3.tsv,"data/sndpth.tsv")
+                .await(ready);
+
+        function ready(error, us, fips, snfl, daily_snfl,daily_sndpth) {
+
+            if (DEBUG) console.log("Error: ", error);
+
+            if (error) {
+                if (DEBUG) console.log("error with file loading...");
+                return;
+            }
+
+            //FIPS
+            ProcessData(us, fips, snfl, daily_snfl,daily_sndpth);
+
+            us_data = us;
+            snow_data = snfl;
+            daily_fall = (daily_snfl);
+            daily_depth = (daily_sndpth);
+
+            initVis();
+        }
+
+
+        //TODO: Jay Update slider mechanics
+        d3.select('#slider_b').call(d3.slider().on("slide", function(evt, value) {
+            var a = value % 10;
+            if (a == 0) {
+                current_year = ((value/100)*10) + 2005;
+                console.log(current_year);
+                newText(storyObject, current_year.toString(), "1");
+                d3.select("#month").html("<span>" + "YEAR" + "</span>" + "' " + current_year);
+                map_vis.onSelectionChange(current_year);      
+            }
+            document.getElementById('stop').click();
+        })); 
+
+        d3.select("#slider-time").on("input", function() {
+            //Slider Input
+            console.log(this.value)
+            current_year = (this).value;
+            d3.select("#month").html("<span>" + "YEAR" + "</span>" + "' " + current_year);
+            map_vis.onSelectionChange(current_year);
+        });
+
+        var pos = 2005;
+        var b = false;
+        var slider = d3.slider().axis(true).min(2005).max(2015);
+        d3.select('#slider-button').on('click', function() {
+            slider.slide_to(++pos);
+            console.log(pos);
+            current_year = pos;
+            d3.select("#month").html("<span>" + "YEAR" + "</span>" + "' " + current_year);
+            map_vis.onSelectionChange(current_year);
+        });
+        d3.select('#play').on('click', function () {
+            if (p == false) {
+                pos = 2004;
+                setInterval(function () {if (pos <= 2014) {document.getElementById('slider-button').click();
+                                                        newText(storyObject, pos.toString(), "1");
+                                                        }}, 3000);
+            p = true;
+            }
+            else {
+                document.getElementById('stop').click();
+                p = false;
+            }
+        });
+        d3.select('#stop').on('click', function () {
+            pos = 2015;
+        });
+        d3.select('#slider_b').call(slider);
+
+        //TODO: Jay Update story mechanics
+        var storyObject = document.getElementById('story');
+        newText(storyObject, "2005", "1");
+
+        //HELPERS
+        /////////////////////////////////////////////////////////////////////////////////
+
+        function ProcessData(us, fips, snfl, daily_snfl, daily_sndpth) {
+            for (var i = 0; i < fips["table"]["rows"].length; i++) {
+                countyToFipsMap.set(fips["table"]["rows"][i][1].toUpperCase(), parseInt(fips["table"]["rows"][i][0], 10));
+                fipsToCountyMap.set(parseInt(fips["table"]["rows"][i][0], 10), fips["table"]["rows"][i][1].toUpperCase());
+            }
+
+            for (var i = 0; i < snfl.length; i++) {
+                var stateCountyID = snfl[i].state + ", " + snfl[i].county;
+                var countyFipsID = countyToFipsMap.get(stateCountyID);
+                snfl[i]["fips"] = (countyFipsID == undefined) ? '' : parseInt(countyToFipsMap.get(stateCountyID), 10);
+            }
+            if (DEBUG) console.log("Done fips mapping");
+
+            for (var i = 0; i < daily_snfl.length; i++) {
+                var stateCountyID = daily_snfl[i].state + ", " + daily_snfl[i].county;
+                var countyFipsID = countyToFipsMap.get(stateCountyID);
+                daily_snfl[i]["fips"] = (countyFipsID == undefined) ? '' : parseInt(countyToFipsMap.get(stateCountyID), 10);
+            }
+
+
+            for (var i = 0; i < daily_sndpth.length; i++) {
+                var stateCountyID = daily_sndpth[i].state + ", " + daily_sndpth[i].county;
+                var countyFipsID = countyToFipsMap.get(stateCountyID);
+                daily_sndpth[i]["fips"] = (countyFipsID == undefined) ? '' : parseInt(countyToFipsMap.get(stateCountyID), 10);
+            }
+        }
+    });
+
+    function toggle(){
+        daily_vis.toggle();
+    }
+
+</script>
+
+</body>
+
+<!--TODO: Loading Screen-->
+<!--&lt;!&ndash;<div class="se-pre-con"></div>&ndash;&gt;-->
+
+<!--<script type="text/javascript">-->
+    <!--//paste this code under head tag or in a seperate js file.-->
+    <!--// Wait for window load-->
+    <!--$(document).ready(function() {-->
+        <!--// Animate loader off screen-->
+        <!--//document.getElementsByTagName("html")[0].style.visibility = "visible";-->
+        <!--//document.getElementsByTagName("body")[0].style.visibility = "visible";-->
+        <!--console.log('done');-->
+
+    <!--});-->
+<!--</script>-->
+
+</html>

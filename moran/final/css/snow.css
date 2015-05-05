@@ -1,0 +1,38 @@
+#snow-background {
+    height: 100%;
+    position: absolute;
+    top: 0;
+    /*bottom: -200px;*/
+    left: 0;
+    right: 0;
+    z-index: -1;
+    background-color: black;
+    font-family: Androgyne;
+    background-image:  url('../images/s1.png'), url('../images/s2.png'), url('../images/s3.png');
+    width: 100%;
+    -webkit-animation: snow 30s linear infinite;
+    -moz-animation: snow 30s linear infinite;
+    -ms-animation: snow 30s linear infinite;
+    animation: snow 30s linear infinite;
+}
+
+@keyframes snow {
+    0% {background-position: 0px 0px, 0px 0px, 0px 0px;}
+    50% {background-position: 500px 500px, 100px 200px, -100px 150px;}
+    100% {background-position: 500px 1000px, 200px 400px, -100px 300px;}
+}
+@-moz-keyframes snow {
+    0% {background-position: 0px 0px, 0px 0px, 0px 0px;}
+    50% {background-position: 500px 500px, 100px 200px, -100px 150px;}
+    100% {background-position: 400px 1000px, 200px 400px, 100px 300px;}
+}
+@-webkit-keyframes snow {
+    0% {background-position: 0px 0px, 0px 0px, 0px 0px;}
+    50% {background-position: 500px 500px, 100px 200px, -100px 150px;}
+    100% {background-position: 500px 1000px, 200px 400px, -100px 300px;}
+}
+@-ms-keyframes snow {
+    0% {background-position: 0px 0px, 0px 0px, 0px 0px;}
+    50% {background-position: 500px 500px, 100px 200px, -100px 150px;}
+    100% {background-position: 500px 1000px, 200px 400px, -100px 300px;}
+}

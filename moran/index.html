@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<link rel="stylesheet" href="css/main.css">
+<link rel="stylesheet" href="css/d3.slider.css">
+<link rel="stylesheet" href="css/d3.play.css">
+<link rel="stylesheet" href="css/snow.css">
+<link rel="stylesheet" href="libs/bootstrap/css/bootstrap.min.css">
+<style>
+
+    .counties {
+        fill: none;
+    }
+
+    .states {
+        fill: none;
+        stroke: #fff;
+        stroke-linejoin: round;
+    }
+
+    path {
+        fill: #ccc;
+        /*stroke: #fff;*/
+        stroke: black;
+        stroke-width: .5px;
+    }
+
+    path:hover {
+        fill: red;
+    }
+
+    .d3-tip {
+        line-height: 1;
+        /*font-weight: bold;*/
+        font-size: 10pt;
+        padding: 10px;
+        background: rgba(0, 0, 0, 0.8);
+        color: #fff;
+        border-radius: 2px;
+    }
+
+    /*.q0-9 { fill:rgb(247,251,255); }*/
+    /*.q1-9 { fill:rgb(222,235,247); }*/
+    /*.q2-9 { fill:rgb(198,219,239); }*/
+    /*.q3-9 { fill:rgb(158,202,225); }*/
+    .q0-9 { fill:rgb(107,174,214); }
+    .q1-9 { fill:rgb(66,146,198); }
+    .q2-9 { fill:rgb(33,113,181); }
+    .q3-9 { fill:rgb(8,81,156); }
+    .q4-9 { fill:rgb(8,48,107); }
+
+    .wrapper {
+      width: 800px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    .wrapper div {
+      margin: 35px 0;
+    }
+
+    .story {
+      width: 500px;
+      margin-left: auto;
+      margin-right: auto;
+      color: blue;
+    }
+
+    .story div {
+      margin: 35px 0;
+    }
+
+</style>
+<body>
+     <div id="time-container" class="row">
+
+        <div id="date" class="col-sm-2">
+            <p id="month">
+                <span>YEAR </span>' 2005'
+            </p>
+        </div>
+
+        <!--PLAY BUTTON-->
+        <div id="play" title="Play animation" class="col-sm-1"></div>
+
+        <!--SLIDER-->
+        <!--<div id="slider7" class="col-sm-5" style="background-color: white">-->
+
+        <!--<div id="slider-container" class="col-sm-5" style="background-color: blue">
+            <input type="range" name="points" min="2005" max="2015" step="1" value="0" id="slider-time" >
+        </div>-->
+
+    </div>
+
+    <div class="wrapper">
+            <span id="stop"><!--<input type='button' value='STOP'/>--></span>
+            <span id = "slider-button"></span>
+            <div id="slider_b"></div>
+            <div id="slider3"></div>    
+    </div>
+
+     <!--TODO: Update story info-->
+    <!--TEXT-->
+    <div id="story-container" class="story">
+        <p>
+            <object id="story" width=100% height="40" type="text/plain" data="" border="0" style="background-color: white">
+            </object>
+        </p>
+    </div>
+<script src="http://d3js.org/d3.v3.min.js"></script>
+<script src="http://d3js.org/queue.v1.min.js"></script>
+<script src="http://d3js.org/topojson.v1.min.js"></script>
+<script src="http://labratrevenge.com/d3-tip/javascripts/d3.tip.v0.6.3.js"></script>
+
+<!--Time Slider-->
+<script src="libs/d3/d3.slider.js"></script>
+<script src="libs/d3/d3.play.js"></script>
+
+<script>
+
+    var tip = d3.tip()
+            .attr('class', 'd3-tip')
+            .offset([0, 0])
+            .html(function(d) {
+                var ans = "County: <span>" + d.id + "</span>" +  "<br/>" +
+                        "Snowfall: <span>" + parseFloat(snflMapping.get(d.id)).toFixed(2) + "</span>";
+                return ans
+            });
+
+    var width = 960,
+        height = 600;
+
+    var snflMax = 1.5,
+        snflMin = 0,
+        snflInvalid = -9999.000;
+
+    var snflMapping = d3.map();
+    var fipsMappingByCounty = d3.map();
+    var fipsMappingByID = d3.map();
+
+
+    var quantize = d3.scale.quantize()
+            .domain([snflMin, snflMax])
+            .range(d3.range(5).map(function(i) {
+                //if (i >=8 ) i = 8;
+                return "q" + i + "-9";
+            }
+            ));
+
+    var projection = d3.geo.albersUsa()
+            .scale(1280)
+            .translate([width / 2, height / 2]);
+
+    var path = d3.geo.path()
+            .projection(projection);
+
+    var svg = d3.select("body").append("svg")
+            .attr("width", width)
+            .attr("height", height);
+
+    svg.call(tip);
+
+    console.log("loading files");
+    queue()
+            .defer(d3.json, "../json/us.json")
+            .defer(d3.json, "../json/FipsCountyCodes.json")//, function(d){
+            .defer(d3.tsv, "../data/sndpth.tsv")
+            .await(ready);
+
+    function ready(error, us, fips, snfl) {
+
+        console.log("Error: ", error);
+
+        //FIPS
+        for (var i=0; i<fips["table"]["rows"].length; i++){
+            fipsMappingByCounty.set( fips["table"]["rows"][i][1].toUpperCase(), parseInt(fips["table"]["rows"][i][0], 10));
+//            fipsMappingByID.set( parseInt(fips["table"]["rows"][i][0], 10), fips["table"]["rows"][i][1].toUpperCase() );
+        }
+        console.log("Done fips map");
+
+        var undefinedCount = 0;
+        for (var i=0; i<snfl.length; i++){
+            var stateCountyID = snfl[i].state + ", " + snfl[i].county;
+            var monthlySnfl = ExtractSnflDailyVals(snfl[i]);
+            var aggregatedSnfl = CalculateAggregateSnfl(monthlySnfl);
+
+            var countyFipsID = fipsMappingByCounty.get(stateCountyID);
+            if (countyFipsID == undefined){
+                //console.log( stateCountyID );
+                undefinedCount = undefinedCount + 1;
+            }
+            else{
+                var v = parseInt(fipsMappingByCounty.get(stateCountyID), 10);
+                snflMapping.set( v, aggregatedSnfl);
+            }
+
+
+        }
+        console.log( undefinedCount );
+        console.log("Done snfl map");
+
+//        //Nesting the snowfall info
+//        var nest = d3.nest()
+//                .key(function(d) { return d.year; })
+//                .key(function(d) { return d.month; })
+//                .key(function(d) { return d.state; })
+//                .key(function(d) { return d.county; })
+//                .key(function(d) { return d.station; })
+//                .entries(snfl);
+//        console.log (nest);
+
+        svg.append("g")
+                .attr("class", "counties")
+                .selectAll("path")
+                .data(topojson.feature(us, us.objects.counties).features)
+                .enter().append("path")
+                .attr("class", function(d) {
+                    var val = snflMapping.get(d.id);
+                    if (val == undefined) console.log( "error" );
+                    if (val != undefined){
+                        return quantize(val);
+                    }
+                })
+                .attr("d", path)
+                .on('mouseover', tip.show)
+                .on('mouseout', tip.hide);
+
+
+        svg.append("path")
+                .datum(topojson.mesh(us, us.objects.states, function(a, b) { return a !== b; }))
+                .attr("class", "states")
+                .attr("d", path);
+
+        console.log("Map ready");
+        console.log("max_snfl threshold = ", snflMax);
+    }
+
+    d3.select(self.frameElement).style("height", height + "px");
+
+    //Helpers
+    //////////////////////////////////////////////////////////////
+    function ExtractSnflDailyVals(d){
+        var monthlySnfl = [];
+        for (var i=1; i<=31; i++){
+            var dailySnfl = +d["day" + i.toString()];
+            //if (dailySnfl > 0) console.log( dailySnfl );
+            monthlySnfl.push( (dailySnfl >= 0) ? dailySnfl : 0 );
+        }
+        return monthlySnfl;
+    }
+
+    function CalculateAggregateSnfl( days ){
+        return d3.sum( days );
+    };
+
+</script>
+</body>

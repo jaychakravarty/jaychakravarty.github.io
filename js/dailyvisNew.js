@@ -245,7 +245,7 @@ DailyVis.prototype.organizeData = function(){
 
 DailyVis.prototype.setProbeContent = function(d){
 
-    var html =  "<strong>" "Day: " + d.day + "</strong>" + "<br/>" + d.snowfall + "\"";
+    var html =  "<strong>" + "Day: " + d.day + "</strong>" + "<br/>" + d.snowfall + "\"";
     this.probe
         .html( html );
 }

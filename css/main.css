@@ -7,6 +7,16 @@ html, body{
     min-width: 960px;
 }
 
+#story-container{
+    vertical-align: middle;
+}
+#story{
+    color: #1a1a1a;
+}
+#splash-title{
+    font-size: 30px;
+    color: #1a1a1a;
+}
 .land {
     fill: #f7f7f7;
     stroke: #ccc;
@@ -14,7 +24,7 @@ html, body{
 
 .state-boundary {
     fill: none;
-    stroke: indigo;
+    stroke: green;
     stroke-width: 1.5px;
     stroke-linejoin: round;
     stroke-linecap: round;
@@ -25,7 +35,6 @@ html, body{
 .circle{
     display:block;
     fill: #094cbf;
-    /*opacity: 1;*/
 }
 .circle :hover{
     fill: yellow;
@@ -114,8 +123,8 @@ html, body{
 }
 
 #county-name{
-    font-size: 30px;
-    margin-left: 100px;
+    /*font-size: 30px;*/
+    /*margin-left: 100px;*/
     color: white;
 }
 
@@ -287,31 +296,79 @@ if it's not present, don't show loader */
     /*fill: blue;*/
 /*}*/
 
-#counties .qNone-9 {fill:grey;}
+#counties .q04183C { fill:#04183C; }
+#counties .q052356 { fill:#052356; }
+#counties .q073a92{ fill:#073a92; }
 #counties .q0f51c4 { fill:#0f51c4; }
-#counties .q073a92 { fill:#073a92; }
+#counties .q2769d9 { fill:#2769d9; }
 #counties .q4681e6 { fill:#4681e6; }
 #counties .q6c9bec { fill:#6c9bec; }
-#counties .q2769d9 { fill:#2769d9; }
-#counties .qeaf1fe { fill:#eaf1fe; }
-#counties .q052356 { fill:#052356; }
 #counties .qa7c3f4 { fill:#a7c3f4; }
-
-/*#counties :hover {fill:grey;}*/
+#counties .qeaf1fe { fill:#eaf1fe; }
+#counties .qNone-9 {fill:grey;}
 
 #counties :hover {fill: yellow;}
-
 #counties .active { fill: red; }
+
+
+#proximity-circle{
+    opacity: 0.4;
+}
 
 #proximity-circle .proximity-hidden{
     opacity: 0.0;
 }
+
+/*#proximity-circle :hover{*/
+    /*stroke: yellow;*/
+/*}*/
 
 #toggle{
     font-size: 16px;
     color: #094cbf;
     margin-left: 100px;
 }
+
+.graphtitle{
+    font-size: 16px;
+    fill:#999;
+    font-weight:bold;
+}
+
+
+#play{
+    width: 53px;
+    height: 53px;
+    background-image: url(../images/play.png);
+    border-radius: 5px;
+    margin-left: 20px;
+    cursor: pointer;
+}
+
+#play:hover{
+    background-position: 0 -53px;
+}
+
+#play.pause{
+    background-image: url(../images/pause.png);
+}
+
+
+
+#col-sm-6 .sliderRange{
+    font-size: 20px;
+    fill:white;
+}
+
+
+@font-face {
+    font-family: SnowText;
+    src: url(FROSW___.TTF);
+}
+.snowText { font-family: SnowText }
+
+
+
 
 
 

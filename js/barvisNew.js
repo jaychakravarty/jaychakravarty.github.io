@@ -22,7 +22,7 @@ BarVis = function(_parentElement, _data, _currentYear, _startFips, _eventHandler
     this.fips = _startFips;
 
     // defines constants
-    this.margin = {top: 20, right:0, bottom: 80, left: 40},
+    this.margin = {top: 20, right:0, bottom: 80, left: 45},
         this.width = 350 - this.margin.left - this.margin.right,
         this.height = 300 - this.margin.top - this.margin.bottom;
 
@@ -196,12 +196,8 @@ BarVis.prototype.updateVis = function(){
         .attr("class", "graphtitle")
         .attr("x", (this.width / 2))             
         .attr("y", -5)
-        .attr("text-anchor", "middle")  
-        .style("font-size", "16px") 
-        .style("fill", "#999")
-        .style("font-weight", "bold") 
-        .text("Monthly Snowfall in" + this.currentYear);
-
+        .attr("text-anchor", "middle")
+        .text("Monthly Snowfall in " + this.currentYear);
 
 }
 

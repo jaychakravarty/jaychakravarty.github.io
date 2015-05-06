@@ -1,5 +1,5 @@
-#snow-background {
-    height: 100%;
+.snow-background {
+    height: 120%;
     position: absolute;
     top: 0;
     /*bottom: -200px;*/

@@ -5,36 +5,12 @@
 
     <!--Stylesheet files-->
     <link rel="stylesheet" href="css/main.css">
-    <link rel="stylesheet" href="css/d3.slider.css">
+    <link rel="stylesheet" href="css/slider.css">
     <link rel="stylesheet" href="css/d3.play.css">
     <link rel="stylesheet" href="css/snow.css">
+    <link rel="stylesheet" href="css/spinner.css">
+    <link rel="stylesheet" href="css/please-wait.css">
     <link rel="stylesheet" href="libs/bootstrap/css/bootstrap.min.css">
-
-    <style>
-    .slider {
-        width: 800px;
-    }
-    .wrapper {
-      width: 800px;
-      margin-left: auto;
-      margin-right: auto;
-    }
-
-    .wrapper div {
-      margin: 35px 0;
-    }
-
-    .story {
-      width: 500px;
-      margin-left: auto;
-      margin-right: auto;
-      color: blue;
-    }
-
-    .story div {
-      margin: 35px 0;
-    }
-    </style>
 
     <!--Title-->
     <title>The More You Snow!</title>
@@ -49,6 +25,8 @@
 <!--Additional libs for functionality-->
 <script src="libs/jquery/jquery-2.1.1.min.js" charset="utf-8"></script>
 <script src="libs/bootstrap/js/bootstrap.min.js" charset="utf-8"></script>
+<script src="libs/bootstrap/js/bootstrap-slider.js" charset="utf-8"></script>
+
 
 
 <!--Time Slider-->
@@ -58,6 +36,7 @@
 <!--Javascript files-->
 <!--<script src="js/barvis.js"></script>-->
 <!--<script src="js/dailyvis.js"></script>-->
+<script type="text/javascript" src="js/please-wait.js"></script>
 <script src="js/barvisNew.js"></script>
 <script src="js/dailyvisNew.js"></script>
 <script src="js/mapvis.js"></script>
@@ -68,12 +47,12 @@
 <div id="container">
     <!--TITLE-->
     <div id="title-container" class="row">
-        <h1 id="title">The More You Snow!</h1>
+        <h1 id="title" class="snowText">The More You Snow!</h1>
     </div>
 
-    <!--TODO: Update slider info-->
-    <!--SLIDER INFO-->
-    <div id="time-container" class="row">
+
+
+    <div id="time-play-county-container" class="row">
 
         <div id="date" class="col-sm-2">
             <p id="month">
@@ -81,34 +60,40 @@
             </p>
         </div>
 
-        <!--PLAY BUTTON-->
-        <div id="play" title="Play animation" class="col-sm-2"></div>
-        
-        <!--SLIDER-->
-        <!--<div id="slider7" class="col-sm-5" style="background-color: white">-->
 
-        <!--<div id="slider-container" class="col-sm-5" style="background-color: blue">
-            <input type="range" name="points" min="2005" max="2015" step="1" value="0" id="slider-time" >
-        </div>-->
+        <div id="play" title="Play animation" class="col-sm-1"></div>
 
-        <div id="story-container" class="story">
-            <p>
-            <object id="story" width=100% height="40" type="text/plain" data="" border="0" style="background-color: white">
-            </object>
-            </p>
+
+        <div id="slider-container" class="col-sm-6 sliderRange">
+            <!--<input type="range" id="slider-time" min="2005" max="2015">-->
+            July 2005
+            <input type="text" id="slider-time" value="2005" width = "500px"
+                   data-slider-min="2005" data-slider-max="2015"
+                   data-slider-step="1" data-slider-value="2005"
+                   data-slider-orientation="horizontal" data-slider-selection="after"
+                   data-slider-tooltip="hide">
+            April 2015
         </div>
 
+        <div id="county-name" class="col-sm-2">
+            Suffolk, MA
+        </div>
     </div>
 
-    <div class="wrapper">
-        <span id="stop"><!--<input type='button' value='STOP'/>--></span>
-        <span id = "slider-button"></span>
-        <div id="slider_b"></div>   
-    </div>
+    <div id="story-container" class="row">
 
-    <!--TODO: Update story info-->
-    <!--TEXT-->
-   
+        <div id="cplaceholder1" class="col-sm-2">
+        </div>
+
+        <p>
+        <object id="story" class-"col-sm-8" width=40% height="40" type="text/plain" data="" border="0" style="background-color: white"
+        vertical-align: "middle" text = "white">
+        </object>
+        </p>
+
+        <div id="placeholder2" class="col-sm-2">
+        </div>
+    </div>
 
     <!--VISUALIZATION (Managed with BOOTSTRAP)-->
     <div id="visualization-container" class="row">
@@ -154,12 +139,22 @@
     </div>
 </div>
 
-<div id="snow-background">
+<div class="snow-background">
 </div>
 
 <!-- MAIN APP -->
 <script>
+
+    var loading_screen = window.pleaseWait({
+        logo: "images/s1.png",
+        loadingHtml: "<div class = 'snow-background'></div> <p class ='splash-title snowText'> The More You Snow </p><br/><p class = 'splash-subtitle'>CS171 Final Project by<br/>Andrew Moran, Chloe Kurzon, and Jay Chakravarty </p><div class='sk-spinner sk-spinner-wave'><div class='sk-rect1'></div><div class='sk-rect2'></div><div class='sk-rect3'></div><div class='sk-rect4'></div><div class='sk-rect5'></div></div>"
+    });
+
     var daily_vis;
+
+    var storyline_data = [{year: 2005, fips: [25001, 25003, 25005, 25007, 25011, 25013, 25015, 25017, 25019, 25021, 25023, 25025, 25027], month: 1},{year: 2006, fips: [08031, 08005, 08059, 08001, 08039, 08019, 08047, 08001, 08003, 08005, 08007, 08009, 08011, 08013, 08015, 08017, 08019, 08021, 08023, 08025, 08027, 08029, 08031, 08033, 08035, 08037, 08039, 08041, 08043, 08045, 08047, 08049, 08051, 08053, 08055, 08057, 08059, 08061, 08063, 08065, 08067, 08069, 08071, 08073, 08075, 08077, 08079, 08081, 08083, 08085, 08087, 08089, 08091, 08093, 08095, 08097, 08099, 08101, 08103, 08105, 08107, 08109, 08111, 08113, 08115, 08117, 08119, 08121, 08123, 08125],month: 12},{year: 2007, fips: [44001, 44003, 44005, 44007, 44009],month: 2},{year: 2008, fips: [55001, 55003, 55005, 55007, 55009, 55011, 55013, 55015, 55017, 55019, 55021, 55023, 55025, 55027, 55029, 55031, 55033, 55035, 55037, 55039, 55041, 55043, 55045, 55047, 55049, 55051, 55053, 55055, 55057, 55059, 55061, 55063, 55065, 55067, 55069, 55071, 55073, 55075, 55077, 55078, 55079, 55081, 55083, 55085, 55087, 55089, 55091, 55093, 55095, 55097, 55099, 55101, 55103, 55105, 55107, 55109, 55111, 55113, 55115, 55117, 55119, 55121, 55123, 55125, 55127, 55129, 55131, 55133, 55135, 55137, 55139, 55141], month: 3},{year: 2009, fips: [24001, 24003, 24005, 24007, 24009, 24510, 24011, 24013, 24015, 24017, 24019, 24021, 24023, 24025, 24027, 24029, 24031, 24033, 24035, 24037, 24039, 24041, 24043, 24045, 24047], month: 1},{year: 2010, fips: [34001, 34003, 34005, 34007, 34009, 34011, 34013, 34015, 34017, 34019, 34021, 34023, 34025, 34027, 34029, 34031, 34033, 34035, 34037, 34039, 34041, 42001, 42003, 42005, 42007, 42009, 42011, 42013, 42015, 42017, 42019, 42021, 42023, 42025, 42027, 42029, 42031, 42033, 42035, 42037, 42039, 42041, 42043, 42045, 42047, 42049, 42051, 42053, 42055, 42057, 42059,  42061, 42063, 42065, 42067, 42069, 42071, 42073, 42075, 42077, 42079, 42081, 42083, 42085, 42087, 42089, 42091, 42093, 42095, 42097, 42099, 42101, 42103, 42105, 42107, 42109, 42111, 42113, 42115, 42117, 42119, 42121, 42123, 42125, 42127, 42129, 42133, 36001, 36003, 36005, 36007, 36009, 36011, 36013, 36015, 36017, 36019, 36021, 36023, 36025, 36027, 36029, 36031, 36033, 36035, 36037, 36039, 36041, 36043, 36045, 36047, 36049, 36051, 36053, 36055, 36057, 36059, 36061, 36063, 36065, 36067, 36069, 36071, 36073, 36075, 36077, 36079, 36081, 36083, 36085, 36087, 36089, 36091, 36093, 36095, 36097, 36099, 36101, 36103, 36105, 36107, 36109, 36111, 36113, 36115, 36117, 36119, 36121, 36123], month: 2},{year: 2011, fips: [25001, 25003, 25005, 25007, 25011, 25013,25015, 25017, 25019, 25021, 25023, 25025, 25027], month: 10},{year: 2012, fips: [42001, 42003, 42005, 42007, 42009, 42011, 42013, 42015, 42017, 42021, 42023, 42025, 42027, 42029, 42031, 42033, 42035, 42037, 42039, 42041, 42043, 42045, 42047, 42049, 42051, 42053, 42055, 42057, 42059, 42061, 42063, 42065, 42067, 42069, 42071, 42073, 42075, 42077, 42079, 42081, 42083, 42085, 42087, 42089, 42091, 42093, 42095, 42097, 42099, 42101, 42103, 42105, 42107, 42109, 42111, 42113, 42115, 42117, 42119, 42121, 42123, 42125, 42127, 42129, 42131, 42133], month: 12},{year: 2013, fips: [04001, 04003, 04005, 04007, 04009, 04011, 04013, 04015, 04017, 04019, 04021, 04023, 04025, 04027], month: 12},{year: 2014, fips: [26001, 26003, 26005, 26007, 26009, 26011, 26013, 26015, 26017, 26019, 26021, 26023, 26025, 26027, 26029, 26031, 26033, 26035, 26037, 26039, 26041, 26043, 26045, 26047, 26049, 26051, 26053, 26055, 26057, 26059, 26061, 26063, 26065, 26067, 26069, 26071, 26073, 26075, 26077, 26079, 26081, 26083, 26085, 26087, 26089, 26091, 26093, 26095, 26097, 26099, 26101, 26103, 26105, 26107, 26109, 26111, 26113, 26115, 26117, 26119, 26121, 26123, 26125, 26127, 26129, 26131, 26133, 26135, 26137, 26139, 26141, 26143, 26145, 26147, 26149, 26151, 26153, 26155, 26157, 26159, 26161, 26163, 26165], month: 1},{year: 2015, fips: [23001, 23003, 23005, 23007, 23009, 23011, 23013, 23015, 23017, 23019, 23021, 23023], month: 2}]
+      
+
 
     $(function() {
 
@@ -179,6 +174,11 @@
         //Visualizations
         var map_vis;
         var bar_vis;
+
+        //slider
+        var dateScale, sliderScale, slider;
+        var interval;
+        var isPlaying = false;
     
 
         DEBUG = true;           // Global debug variable
@@ -198,26 +198,52 @@
                 //arrays are by default expected to be extra parameters for an event trigger
                 //Need to pass it in as a single element to keep track of all fips
                 //Originally registered it as a list of parameters (not values)...
-                bar_vis.onSelectionChange(fipObj.values, current_year);
-                daily_vis.onSelectionChange(fipObj.values,current_year);
-
-                //update the display with the name of the county selected
-                var sourceCountyName = undefined;
-                if (fipObj.values[0]){
-                    sourceCountyName = fipsToCountyMap.get(fipObj.values[0]);
-                    var splitted = sourceCountyName.split(',');
-                    sourceCountyName = splitted[1] + ", " + splitted[0];
+                if (current_year == 2015){
+                    bar_line_update(fipObj.values, current_year,1);
                 }
-                var fipsNotLocated = (sourceCountyName == undefined)
-
-                document.getElementById("county-name").innerHTML = ((fipsNotLocated) ? "None" : sourceCountyName)
+                else if (current_year == 2005)
+                    {
+                        bar_line_update(fipObj.values, current_year,12);
+                    }
+                else {
+                    bar_vis.onSelectionChange(fipObj.values, year);
+                    daily_vis.onSelectionChange(fipObj.values,year);
+                }
+                update_county_name(fipObj.values);
             });
             // That's why this works (d is a single element preceding event object )
             $(MyEventHandler).bind("barClicked", function (event, d) {
                 daily_vis.onBarClicked(d.values.fips, d.key, current_year);
             });
+
+            loading_screen.finish();
         }
 
+
+        function storyline (year){
+            var data = storyline_data.filter(function (d){return d.year == year});
+            bar_line_update(data[0].fips,year,data[0].month);
+            map_vis.storyLine(data[0].fips);
+            update_county_name(data[0].fips);
+        }
+
+        function bar_line_update(fips,year,month){
+            bar_vis.onSelectionChange(fips, year);
+            daily_vis.onBarClicked(fips,month,year);
+        }
+        function update_county_name (fips){
+
+            //update the display with the name of the county selected
+            var sourceCountyName = undefined;
+            if (fips[0]){
+                sourceCountyName = fipsToCountyMap.get(fips[0]);
+                var splitted = sourceCountyName.split(',');
+                sourceCountyName = splitted[1] + ", " + splitted[0];
+            }
+            var fipsNotLocated = (sourceCountyName == undefined)
+
+            document.getElementById("county-name").innerHTML = ((fipsNotLocated) ? "None" : sourceCountyName)
+        }
 
         if (DEBUG) console.log("loading files");
 
@@ -229,7 +255,7 @@
                 .defer(d3.tsv,"data/sndpth.tsv")
                 .await(ready);
 
-        function ready(error, us, fips, snfl, daily_snfl,daily_sndpth) {
+        function ready(error, us, fips, snfl,daily_snfl,daily_sndpth) {
 
             if (DEBUG) console.log("Error: ", error);
 
@@ -239,7 +265,7 @@
             }
 
             //FIPS
-            ProcessData(us, fips, snfl, daily_snfl,daily_sndpth);
+            ProcessData(us, fips, snfl, daily_snfl, daily_sndpth);
 
             us_data = us;
             snow_data = snfl;
@@ -249,55 +275,36 @@
             initVis();
         }
 
+        $('#slider-time').slider()
+                .on('slide', function(ev){
 
-        //TODO: Jay Update slider mechanics
-        d3.select('#slider_b').call(d3.slider().on("slide", function(evt, value) {
-            var a = value % 10;
-            if (a == 0) {
-                current_year = ((value/100)*10) + 2005;
-                console.log(current_year);
-                newText(storyObject, current_year.toString(), "1");
-                d3.select("#month").html("<span>" + "YEAR" + "</span>" + "' " + current_year);
-                map_vis.onSelectionChange(current_year);      
-            }
-            document.getElementById('stop').click();
-        })); 
+                    if ( isPlaying ){
+                        clearInterval(interval);
+                    }
 
-        d3.select("#slider-time").on("input", function() {
-            //Slider Input
-            console.log(this.value)
-            current_year = (this).value;
-            d3.select("#month").html("<span>" + "YEAR" + "</span>" + "' " + current_year);
-            map_vis.onSelectionChange(current_year);
-        });
+                    current_year = (this).value;
+                    d3.select("#month").html("<span>" + "YEAR" + "</span>" + "' " + current_year);
+                    map_vis.onSelectionChange(current_year);
+                })
+                .on("slideend",function(){
+                    if ( isPlaying ) animate();
+                })
 
-        var pos = 2005;
-        var b = false;
-        var slider = d3.slider().axis(true).min(2005).max(2015);
-        d3.select('#slider-button').on('click', function() {
-            slider.slide_to(++pos);
-            console.log(pos);
-            current_year = pos;
-            d3.select("#month").html("<span>" + "YEAR" + "</span>" + "' " + current_year);
-            map_vis.onSelectionChange(current_year);
-        });
-        d3.select('#play').on('click', function () {
-            if (p == false) {
-                pos = 2004;
-                setInterval(function () {if (pos <= 2014) {document.getElementById('slider-button').click();
-                                                        newText(storyObject, pos.toString(), "1");
-                                                        }}, 3000);
-            p = true;
-            }
-            else {
-                document.getElementById('stop').click();
-                p = false;
-            }
-        });
-        d3.select('#stop').on('click', function () {
-            pos = 2015;
-        });
-        d3.select('#slider_b').call(slider);
+
+        d3.select("#play")
+            .attr("title", "Play animation")
+            .on("click", function () {
+                if (!isPlaying) {
+                    isPlaying = true;
+                    d3.select(this).classed("pause", true).attr("title", "Pause animation");
+                    animate();
+                } else {
+                    isPlaying = false;
+                    d3.select(this).classed("pause", false).attr("title", "Play animation");
+                    clearInterval(interval);
+                }
+            });
+
 
         //TODO: Jay Update story mechanics
         var storyObject = document.getElementById('story');
@@ -332,29 +339,44 @@
                 daily_sndpth[i]["fips"] = (countyFipsID == undefined) ? '' : parseInt(countyToFipsMap.get(stateCountyID), 10);
             }
         }
+
+        function animate() {
+            interval = setInterval(function () {
+
+                //Increment (unless we went to far)
+                current_year++;
+                if (current_year == 2016) {
+                    current_year = 2005;
+                    isPlaying = false;
+                    d3.select("#play").classed("pause", false).attr("title", "Play animation");
+                    clearInterval(interval);
+                }
+
+                $('#slider-time').slider('setValue', current_year);
+
+                d3.select("#month").html("<span>" + "YEAR" + "</span>" + "' " + current_year);
+                map_vis.onSelectionChange(current_year);
+                storyline(current_year);
+
+                if ( current_year == 2015 ){
+                    isPlaying = false;
+                    d3.select("#play").classed("pause", false).attr("title", "Play animation");
+                    clearInterval(interval);
+                    return;
+                }
+
+            }, 3000);
+        }
+
     });
 
     function toggle(){
         daily_vis.toggle();
     }
 
+
 </script>
 
 </body>
-
-<!--TODO: Loading Screen-->
-<!--&lt;!&ndash;<div class="se-pre-con"></div>&ndash;&gt;-->
-
-<!--<script type="text/javascript">-->
-    <!--//paste this code under head tag or in a seperate js file.-->
-    <!--// Wait for window load-->
-    <!--$(document).ready(function() {-->
-        <!--// Animate loader off screen-->
-        <!--//document.getElementsByTagName("html")[0].style.visibility = "visible";-->
-        <!--//document.getElementsByTagName("body")[0].style.visibility = "visible";-->
-        <!--console.log('done');-->
-
-    <!--});-->
-<!--</script>-->
 
 </html>

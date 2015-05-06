@@ -4,6 +4,9 @@ MapVis = function(_parentElement, _fipsToCountyMap, _usData, _snflData, _current
     this.minYear =2005;
     this.maxYear =2015;
 
+    this.snflMax = 115;
+    this.snflMaxColor = "04183C";
+
     this.parentElement = _parentElement;
     this.fipsToCountyMap = _fipsToCountyMap;
     this.usData = _usData;
@@ -52,46 +55,23 @@ MapVis = function(_parentElement, _fipsToCountyMap, _usData, _snflData, _current
 
     //Legend els
     this.legendRectWidth = 20;
-    this.legendRectHeight = 20;
+    this.legendRectHeight = 40;
 
     //TODO Update Legend Variables
-    this.color_domain = [1, 2, 4, 8, 10, 20, 35, 60, 110];
-    this.ext_color_domain = [0, 1, 2, 4, 8, 10, 20, 35, 60];
     this.legend_labels = [
-        "< 1in",
-        "2in",
-        "4in",
-        "8in",
-        "10in",
-        "20in",
-        "35in",
-        "60in",
-        ">110in"
+        "<1 in",
+        "2 in",
+        "3 in",
+        "6 in",
+        "10 in",
+        "20 in",
+        "35 in",
+        "65 in",
+        ">115 in"
     ];
 
-    this.snflMax = 100;
-    this.snflMin = 0;
-    this.quantizeRange = 9;
-
-    this.color = d3.scale.linear()
-        .domain(this.color_domain)
-        .range([
-            "#f7fbff",
-            "#deebf7",
-            "#c6dbef",
-            "#9ecae1",
-            "#6baed6",
-            "#4292c6",
-            "#2171b5",
-            "#08519c",
-            "#08306b"
-        ])
-        .clamp(true);
-
-   
-    //this.colorpow = chroma.scale(['bcbaf2', '9998c5', '767592', '514c76','20194b']).domain([1, 100], 10, 'log');
-    this.colorpow = chroma.scale(['eaf1fe', '76a2ee', '3475e4','094cbf','052356']).domain([1, 100], 8, 'log');   
- 
+    this.logTicks = 8;
+    this.colorpow = chroma.scale(['eaf1fe', '76a2ee', '3475e4','094cbf','052356']).domain([1, this.snflMax], this.logTicks, 'log');
 
     //Global Map Reference
     map_instance = this;
@@ -163,12 +143,6 @@ MapVis.prototype.initVis = function(){
     this.zoom = d3.behavior.zoom()
         .scaleExtent([0.3,4.35])
         .on("zoom", that.zoomOnCounty);
-
-    //INIT Thresholds
-    /*
-    this.quantize = d3.scale.quantize()
-        .domain([that.snflMin, that.snflMax])
-        .range(d3.range(that.quantizeRange).map(function(i) { return "q" + i + "-9"; }));*/
 
     //INIT MAP
     this.projection = d3.geo.albersUsa()
@@ -266,30 +240,24 @@ MapVis.prototype.initVis = function(){
         .attr("id","probe")
         .attr("class","probe");
 
-    //MAP CONSTANTS
-    this.snflMax = 30;
-    this.snflMin = 0;
-    this.snflInvalid = -9999.000;
-
-
     //LEGEND
     this.legend = d3.select("#legend-container").append("svg").attr("height", that.height)
         .selectAll("g.legend")
-        .data(that.ext_color_domain)
+        .data(that.colorpow.domain())
         .enter().append("g")
         .attr("class", "legend");
 
     this.legend.append("rect")
-        .attr("x", 65)
-        .attr("y", function(d, i){ return that.height*.75 - (i*that.legendRectHeight) - 2*that.legendRectHeight;})
+        .attr("x", 30)
+        .attr("y", function(d, i){ return that.height - (i*that.legendRectHeight) - 4*that.legendRectHeight;})
         .attr("width", that.legendRectWidth)
-        .attr("height", that.legendRectHeight)
-        .style("fill", function(d, i) { return that.color(d); });
-        //.style("opacity", 0.8);
+        .attr("height", that.legendRectWidth*2)
+        .style("fill", function(d, i) { return (i<that.logTicks) ? that.colorpow(d) : "#"+that.snflMaxColor.toString(); });
 
     this.legend.append("text")
-        .attr("x", 90)
-        .attr("y", function(d, i){ return that.height*.75 - (i*that.legendRectHeight) - that.legendRectHeight - 4;})
+        .attr("class", "graphtitle")
+        .attr("x", 55)
+        .attr("y", function(d, i){ return that.height - (i*that.legendRectHeight) - 3.25*that.legendRectHeight - 4;})
         .text(function(d, i){ return that.legend_labels[i]; });
 
     //UPDATES
@@ -316,31 +284,23 @@ MapVis.prototype.updateVis = function(){
 
     var that = this;
 
+    var mySet = {}
+
     this.counties.selectAll("path")
         .attr("class", function(d) {
             var val = that.displayData.get(d.id);
             if (val != undefined) {
-                return "q" + ((that.colorpow(val).hex()).slice(1));
+                var colorValString = (val >= that.snflMax) ? that.snflMaxColor: ((that.colorpow(val).hex()).slice(1));
+                return "q" + colorValString;
             }
             else{
                 return "qNone-9";
             }
         });
-        /*.attr("class", function(d) {
-            var val = that.displayData.get(d.id);
-            if (val != undefined) {
-                return that.quantize(val);
-            }
-            else{
-                return "qNone-9";
-            }
-
-        });*/
 
     if (that.selectedCountyFips.length>0){
         that.UpdateSelectedCounties();
     }
-
 }
 
 /**
@@ -542,14 +502,29 @@ MapVis.prototype.UpdateSelectedCounties = function() {
         });
 
 
-    if (d3.event.sourceEvent == !undefined) {
-        d3.event.sourceEvent.stopPropagation();
+    if (d3.event != undefined){
+        if (d3.event.sourceEvent == !undefined) {
+            d3.event.sourceEvent.stopPropagation();
+        }
     }
 
     $(that.eventHandler).trigger("selectionChanged", {values: that.selectedCountyFips});
 
 }
 
+MapVis.prototype.storyLine = function(fips){
+    /*this.counties.selectAll("path")
+        .each(d3.select(this).classed("active"),false);
+*/
+     this.counties.selectAll("path")
+        .each(function (d) { 
+            for (var i = 0; i < fips.length; i ++){
+            if (d.id == fips[i]) {
+                d3.select(this).classed("active",true)
+                }
+            }
+        });
+}
 
 //Pop-up
 ///////////////////////////////////////////////////////////////
